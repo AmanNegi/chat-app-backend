@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Message Page</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css"
+      integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.min.js"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"
+      integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"
+      integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1"
+      crossorigin="anonymous"
+    ></script>
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+  </head>
+  <body onunload="disconnect()" onbeforeunload="disconnect()">
+    <div class="container">
+      <br />
+      <div class="jumbotron">
+        <h1 id="welcomeText" class="display-4">Welcome</h1>
+        <br />
+        <textarea
+          id="message"
+          class="form-control"
+          placeholder="Your Message Here"
+        ></textarea>
+        <br />
+        <button id="send" class="btn btn-active">Send Message</button>
+        <button id="clear" class="btn btn-dark">Clear Chat</button>
+      </div>
+        <ul id="messages" class="list-group container"></ul>
+    </div>
+
+    <div style="height: 10vh"></div>
+    <script>
+      async function disconnect() {
+        console.log("On close.. Disconnecting user...");
+
+        // TODO: Make a request to add disconnect message
+        sendMessage({
+          name: userName,
+          message: username + " Disconnected",
+        });
+
+        document.body.onunload = "";
+        document.body.onbeforeunload = "";
+        // socket.emit("disconnect", {
+        //   message: "Disconnecting user " + userName,
+        //   type: "POST",
+        //   data: {
+        //     userName: userName,
+        //     roomName: roomName,
+        //   },
+        // });
+      }
+
+      // window.onbeforeunload = function () {
+
+      // };
+
+      var href = window.location.href;
+      var roomName = href.substring(
+        href.lastIndexOf("name=") + 5,
+        href.lastIndexOf("&")
+      );
+      var userName = href.substring(href.lastIndexOf("=") + 1, href.length);
+      console.log("In index.html", roomName, userName);
+
+      $("#welcomeText").html(
+        "Welcome to " + "<strong>" + roomName + "</strong>"
+      );
+
+      var socket = io();
+      getMessages(roomName);
+
+      socket.on("message", addMessages);
+      socket.on("refresh", (msg) => {
+        // Check for new messages once you get an request to refresh
+        console.log("Request to refresh", msg);
+        // alert(msg.message)
+        // getMessages(roomName);
+      });
+
+      var sendButton = document.getElementById("send");
+      var clearButton = document.getElementById("clear");
+
+      sendButton.onclick = function () {
+        var message = { name: userName, message: $("#message").val() };
+        sendMessage(message);
+      };
+      clearButton.onclick = function () {
+        clearMessages();
+      };
+
+      function addMessages(message, last) {
+        if (last) {
+          $("#messages").append(
+            `<li class="list-group-item active">${message.name} <br> ${message.message} <br> ${message.messageDate} </li>`
+          );
+        } else {
+          $("#messages").append(
+            `<li class="list-group-item">${message.name} <br> ${message.message} <br> ${message.messageDate} </li>`
+          );
+        }
+      }
+
+      async function getMessages(roomName) {
+        // Clear Data before adding messages
+        $("#messages").empty();
+        var path = "http://localhost:3000/chat/messages/" + roomName;
+        console.log("GetMessages() function", path);
+        try {
+          var data = await $.get(path).promise();
+          console.log("Data received: ", data);
+
+          for (var i = 0; i < data.length; i++) {
+            addMessages(data[i], i == 0);
+          }
+        } catch (e) {
+          console.log("An error occurred while getting messages", e);
+        }
+      }
+
+      async function sendMessage(message) {
+        var body = {
+          roomName: roomName,
+          userName: userName,
+          message: message,
+        };
+        $("#name").val("");
+        $("#message").val("");
+        console.log("Send message from client", body);
+        try {
+          var data = await $.post(
+            "http://localhost:3000/chat/addMessage",
+            body
+          ).promise();
+          getMessages(roomName);
+          socket.emit("event", { message: "Added Message", type: "POST" });
+        } catch (e) {
+          console.log("An error occured, e");
+        }
+      }
+
+      function clearMessages(message) {
+        $.post("http://localhost:3000/chat/clear", message);
+        socket.emit("event", {
+          message: "Cleared Messages Message",
+          type: "POST",
+        });
+        // Check for new messages once you added an message to the server
+        getMessages();
+      }
+    </script>
+  </body>
+</html>
