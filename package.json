@@ -4,7 +4,7 @@
   "description": "Simple chat application backend.",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon start --w",
+    "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
