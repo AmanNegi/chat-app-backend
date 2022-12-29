@@ -1,10 +1,10 @@
 var mongoose = require("mongoose");
 
 function connectDatabase() {
-  var dbUrl = 
-  // process.env.DATABASE_URL;
-   "mongodb://localhost/simple-chat";
+  var dbUrl = process.env.DATABASE_URL;
+  //  "mongodb://localhost/simple-chat";
 
+  console.log(dbUrl);
   mongoose.connect(dbUrl, (err) => {
     if (err) console.log("An error occurred while connecting", err);
     else console.log("Connected to MongoDB...");
