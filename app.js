@@ -1,7 +1,11 @@
 const express = require("express");
 const app = express();
 const http = require("http").Server(app);
-const io = require("socket.io")(http);
+const io = require("socket.io")(http, {
+  cors: {
+    origin: "https://amannegi.github.io",
+  },
+});
 //   {
 //   cors: {
 //     origin: "http://localhost:3000",
