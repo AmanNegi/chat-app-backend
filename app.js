@@ -6,6 +6,8 @@ const io = require("socket.io")(http, {
     origin: "https://amannegi.github.io",
   },
 });
+io.set('transports', ['websocket']);
+
 //   {
 //   cors: {
 //     origin: "http://localhost:3000",
