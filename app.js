@@ -6,7 +6,7 @@ const io = require("socket.io")(http, {
     origin: "https://amannegi.github.io",
   },
 });
-io.set('transports', ['websocket']);
+// io.set('transports', ['websocket']);
 
 //   {
 //   cors: {
