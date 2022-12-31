@@ -3,16 +3,10 @@ const app = express();
 const http = require("http").Server(app);
 const io = require("socket.io")(http, {
   cors: {
-    origin: "https://amannegi.github.io",
+    origin: ["https://amannegi.github.io", "https://localhost:3000"],
   },
 });
-// io.set('transports', ['websocket']);
 
-//   {
-//   cors: {
-//     origin: "http://localhost:3000",
-//   },
-// }
 module.exports = io;
 
 require("./helper/socket.js")(io);
@@ -23,10 +17,11 @@ const cors = require("cors");
 
 app.use(express.json());
 app.use(
-  cors({
-    origin: "https://amannegi.github.io",
-    methods: "GET,HEAD,PUT,PATCH,DELETE",
-  })
+  cors()
+  //   {
+  //   origin: "https://amannegi.github.io",
+  //   methods: "GET,HEAD,PUT,PATCH,DELETE",
+  // }
 );
 app.use(express.urlencoded());
 app.use("/chat", chat);
